@@ -1,0 +1,5 @@
+%{
+  "blake2": {:hex, :blake2, "1.0.4", "8263c69a191142922bc2510f1ffc0de0ae96e8c3bd5e2ad3fac7e87aed94c8b1", [:mix], [], "hexpm", "e9f4120d163ba14d86304195e50745fa18483e6ad2be94c864ae449bbdd6a189"},
+  "enacl": {:hex, :enacl, "1.2.1", "7776480b9b3d42a51d66dbbcbf17fa3d79285b3d2adcb4d5b5bd0b70f0ef1949", [:rebar3], [], "hexpm", "67bbbeddd2564dc899a3dcbc3765cd6ad71629134f1e500a50ec071f0f75e552"},
+  "varint": {:hex, :varint, "1.3.0", "e5901ea7fafdbb28cd2c402b5836878fe9480614d1152e8dbbafc44335d723aa", [:mix], [], "hexpm", "f32c332ddf730ea6a9c80e5bda774651dc9e9090552deff99f6e3fc1b4dc6519"},
+}
