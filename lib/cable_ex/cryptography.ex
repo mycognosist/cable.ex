@@ -12,7 +12,7 @@ defmodule Cable.Cryptography do
   Sign a message with the given secret key.
   """
   def sign(message, secret_key) do
-    :enacl.sign(message, secret_key)
+    :enacl.sign_detached(message, secret_key)
   end
 
   @doc """

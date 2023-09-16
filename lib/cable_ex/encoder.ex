@@ -1,13 +1,8 @@
-# References: 
-#
-# https://github.com/folz/bento/blob/master/lib/bento/encoder.ex
-# https://github.com/alehander92/wire/blob/master/lib/wire/encoder.ex
-
 defmodule Cable.Encode do
 end
 
 defprotocol Cable.Encoder do
-  def encode(value)
+  def encode(data, secret_key)
 end
 
 alias Cable.Post
@@ -40,7 +35,20 @@ defimpl Cable.Encoder, for: Post do
     encode_header(post) <> encode_channel(post) <> encode_text(post)
   end
 
-  def encode(post) do
+  defp encode_and_sign(%Post{} = post, secret_key) do
+    encoded_post = encode(post)
+    Post.sign_post(encoded_post, secret_key)
+  end
+
+  def encode(%Post{} = post, nil) do
+    encode(post)
+  end
+
+  def encode(%Post{} = post, secret_key) do
+    encode_and_sign(post, secret_key)
+  end
+
+  def encode(%Post{} = post) do
     case post.post_type do
       0 -> encode_text_post(post)
     end
