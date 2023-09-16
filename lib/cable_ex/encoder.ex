@@ -2,6 +2,7 @@ defmodule Cable.Encode do
 end
 
 defprotocol Cable.Encoder do
+  def encode(data)
   def encode(data, secret_key)
 end
 
