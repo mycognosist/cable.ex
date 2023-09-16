@@ -1,8 +1,3 @@
-# References: 
-#
-# https://github.com/folz/bento/blob/master/lib/bento/encoder.ex
-# https://github.com/alehander92/wire/blob/master/lib/wire/encoder.ex
-
 defmodule Cable.Encode do
 end
 
