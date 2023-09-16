@@ -34,6 +34,18 @@ defmodule Cable.Post do
 
   alias Cable.Post
 
+  def new(), do: %Post{}
+
+  def new(public_key, signature, links, post_type, timestamp) do
+    %Post{
+      public_key: public_key,
+      signature: signature,
+      links: links,
+      post_type: post_type,
+      timestamp: timestamp
+    }
+  end
+
   def new_text_post(), do: %Post{post_type: @text_post_type}
 
   def new_text_post(public_key, links, timestamp, channel, text) do
@@ -57,11 +69,10 @@ defmodule Cable.Post do
     public_key <> signature <> rest
   end
 
-  @doc """
-  def sign_post(%Post{} = post, secret_key) do
-    # Encode the post as bytes.
-    # Sign the post.
-    # Return a post with the updated signature field.
+  def sign_post(encoded_post, secret_key) do
+    <<public_key::binary-size(32), rest::binary>> = encoded_post
+    <<_head::binary-size(64), rest::binary>> = rest
+    signature = Cable.Cryptography.sign(rest, secret_key)
+    public_key <> signature <> rest
   end
-  """
 end
