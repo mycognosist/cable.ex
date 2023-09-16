@@ -37,7 +37,7 @@ iex> Cable.encode(post, secret_key)
   ...>>
 ```
 
-Encoding can also be done without a secret key, in which placeholder zero
+Encoding can also be done without a secret key, in which case placeholder zero
 bytes will be used for the signature:
 
 ```elixir
@@ -50,7 +50,7 @@ iex> Cable.encode(post)
 Signing an encoded post:
 
 ```elixir
-iex> Cable.Post.sign(Cable.Encoder.encode(post), secret_key)
+iex> Cable.Post.sign(Cable.encode(post), secret_key)
 <<37, 178, 114, 167, 21, 85, 50, 45, 64, 239, 228, 73, 167, 249, 154, 248, 253,
   54, 75, 146, 211, 80, 241, 102, 68, 129, 178, 218, 52, 10, 2, 208, 196, 239,
   209, 58, 116, 239, 180, 152, 204, 191, 108, 241, 143, 151, 248, 250, 211, 65,
