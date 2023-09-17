@@ -1,13 +1,7 @@
 defmodule Cable.Post do
-  @moduledoc """
-  Create a text post (with or without supplied fields):
-
-  `text_post = Cable.Post.new_text_post()`
-  `text_post = Cable.Post.new_text_post(public_key, links, timestamp, channel, text)`
-  """
-
   @text_post 0
   @delete_post 1
+  @info_post 2
 
   defstruct public_key: nil,
             signature: nil,
@@ -29,7 +23,7 @@ defmodule Cable.Post do
           channel: String.t(),
           text: String.t(),
           hashes: [[binary()]],
-          info: map(),
+          info: [[tuple()]],
           topic: String.t()
         }
 
@@ -69,6 +63,18 @@ defmodule Cable.Post do
       timestamp: timestamp,
       hashes: hashes,
       post_type: @delete_post
+    }
+  end
+
+  def new_info_post(), do: %Post{post_type: @info_post}
+
+  def new_info_post(public_key, links, timestamp, info) do
+    %Post{
+      public_key: public_key,
+      links: links,
+      timestamp: timestamp,
+      info: info,
+      post_type: @info_post
     }
   end
 

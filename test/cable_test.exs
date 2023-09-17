@@ -13,12 +13,16 @@ defmodule CableTest do
   @hash_1 "15ed54965515babf6f16be3f96b04b29ecca813a343311dae483691c07ccf4e5"
   @hash_2 "97fc63631c41384226b9b68d9f73ffaaf6eac54b71838687f48f112e30d6db68"
   @hash_3 "9c2939fec6d47b00bafe6967aeff697cf4b5abca01b04ba1b31a7e3752454bfa"
+  @info_key "name"
+  @info_val "cabler"
 
   @text_post_signature "6725733046b35fa3a7e8dc0099a2b3dff10d3fd8b0f6da70d094352e3f5d27a8bc3f5586cf0bf71befc22536c3c50ec7b1d64398d43c3f4cde778e579e88af05"
   @delete_post_signature "affe77e3b3156cda7feea042269bb7e93f5031662c70610d37baa69132b4150c18d67cb2ac24fb0f9be0a6516e53ba2f3bbc5bd8e7a1bff64d9c78ce0c2e4205"
+  @info_post_signature "4ccb1c0063ef09a200e031ee89d874bcc99f3e6fd8fd667f5e28f4dbcf4b7de6bb1ce37d5f01cc055a7b70cef175d30feeb34531db98c91fa8b3fa4d7c5fd307"
 
   @text_post_encoded "25b272a71555322d40efe449a7f99af8fd364b92d350f1664481b2da340a02d06725733046b35fa3a7e8dc0099a2b3dff10d3fd8b0f6da70d094352e3f5d27a8bc3f5586cf0bf71befc22536c3c50ec7b1d64398d43c3f4cde778e579e88af05015049d089a650aa896cb25ec35258653be4df196b4a5e5b6db7ed024aaa89e1b300500764656661756c740d68e282ac6c6c6f20776f726c64"
   @delete_post_encoded "25b272a71555322d40efe449a7f99af8fd364b92d350f1664481b2da340a02d0affe77e3b3156cda7feea042269bb7e93f5031662c70610d37baa69132b4150c18d67cb2ac24fb0f9be0a6516e53ba2f3bbc5bd8e7a1bff64d9c78ce0c2e4205015049d089a650aa896cb25ec35258653be4df196b4a5e5b6db7ed024aaa89e1b301500315ed54965515babf6f16be3f96b04b29ecca813a343311dae483691c07ccf4e597fc63631c41384226b9b68d9f73ffaaf6eac54b71838687f48f112e30d6db689c2939fec6d47b00bafe6967aeff697cf4b5abca01b04ba1b31a7e3752454bfa"
+  @info_post_encoded "25b272a71555322d40efe449a7f99af8fd364b92d350f1664481b2da340a02d04ccb1c0063ef09a200e031ee89d874bcc99f3e6fd8fd667f5e28f4dbcf4b7de6bb1ce37d5f01cc055a7b70cef175d30feeb34531db98c91fa8b3fa4d7c5fd307015049d089a650aa896cb25ec35258653be4df196b4a5e5b6db7ed024aaa89e1b30250046e616d65066361626c657200"
 
   setup_all do
     alias Cable.Post
@@ -40,6 +44,12 @@ defmodule CableTest do
     delete_post_encoded = Base.decode16!(@delete_post_encoded, case: :lower)
     delete_post_signature = Base.decode16!(@delete_post_signature, case: :lower)
 
+    # info_post = Post.new_info_post(public_key, [post_hash], @timestamp, %{key: @info_key, val: @info_val})
+    # info_post = Post.new_info_post(public_key, [post_hash], @timestamp, [%{@info_key => @info_val}])
+    info_post = Post.new_info_post(public_key, [post_hash], @timestamp, [{@info_key, @info_val}])
+    info_post_encoded = Base.decode16!(@info_post_encoded, case: :lower)
+    info_post_signature = Base.decode16!(@info_post_signature, case: :lower)
+
     {:ok,
      secret_key: secret_key,
      text_post: text_post,
@@ -47,7 +57,10 @@ defmodule CableTest do
      text_post_signature: text_post_signature,
      delete_post: delete_post,
      delete_post_encoded: delete_post_encoded,
-     delete_post_signature: delete_post_signature}
+     delete_post_signature: delete_post_signature,
+     info_post: info_post,
+     info_post_encoded: info_post_encoded,
+     info_post_signature: info_post_signature}
   end
 
   test "encodes and signs a text post", state do
@@ -66,5 +79,9 @@ defmodule CableTest do
   test "decodes a delete post", state do
     signed_post = %{state[:delete_post] | signature: state[:delete_post_signature]}
     assert Cable.decode(state[:delete_post_encoded]) == signed_post
+  end
+
+  test "encodes and signs an info post", state do
+    assert Cable.encode(state[:info_post], state[:secret_key]) == state[:info_post_encoded]
   end
 end
