@@ -6,7 +6,8 @@ defmodule Cable.Post do
   `text_post = Cable.Post.new_text_post(public_key, links, timestamp, channel, text)`
   """
 
-  @text_post_type 0
+  @text_post 0
+  @delete_post 1
 
   defstruct public_key: nil,
             signature: nil,
@@ -46,7 +47,7 @@ defmodule Cable.Post do
     }
   end
 
-  def new_text_post(), do: %Post{post_type: @text_post_type}
+  def new_text_post(), do: %Post{post_type: @text_post}
 
   def new_text_post(public_key, links, timestamp, channel, text) do
     %Post{
@@ -55,7 +56,19 @@ defmodule Cable.Post do
       timestamp: timestamp,
       channel: channel,
       text: text,
-      post_type: @text_post_type
+      post_type: @text_post
+    }
+  end
+
+  def new_delete_post(), do: %Post{post_type: @delete_post}
+
+  def new_delete_post(public_key, links, timestamp, hashes) do
+    %Post{
+      public_key: public_key,
+      links: links,
+      timestamp: timestamp,
+      hashes: hashes,
+      post_type: @delete_post
     }
   end
 
