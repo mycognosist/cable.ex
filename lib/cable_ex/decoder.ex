@@ -1,16 +1,16 @@
 defmodule Cable.Decoder do
-  defp decode_links(encoded_links) do
-    {num_links, rest} = decode_num_links(encoded_links)
-    links_size = num_links * 32
-    <<encoded_links::binary-size(links_size), rest::binary>> = rest
-    links = for <<chunk::size(32)-binary <- encoded_links>>, do: chunk
-    {links, rest}
+  defp decode_hashes(encoded_hashes) do
+    {num_hashes, rest} = decode_num_hashes(encoded_hashes)
+    hashes_size = num_hashes * 32
+    <<encoded_hashes::binary-size(hashes_size), rest::binary>> = rest
+    hashes = for <<chunk::size(32)-binary <- encoded_hashes>>, do: chunk
+    {hashes, rest}
   end
 
-  defp decode_num_links(data) do
-    <<links_byte::binary-size(1), rest::binary>> = data
-    {num_links, _unparsed} = Varint.LEB128.decode(links_byte)
-    {num_links, rest}
+  defp decode_num_hashes(data) do
+    <<hashes_byte::binary-size(1), rest::binary>> = data
+    {num_hashes, _unparsed} = Varint.LEB128.decode(hashes_byte)
+    {num_hashes, rest}
   end
 
   defp decode_public_key(encoded_post) do
@@ -55,10 +55,15 @@ defmodule Cable.Decoder do
     %{signed_post | channel: channel, text: text}
   end
 
+  defp decode_delete_post(signed_post, data) do
+    {hashes, _rest} = decode_hashes(data)
+    %{signed_post | hashes: hashes}
+  end
+
   defp decode_header(encoded_post) do
     {public_key, rest} = decode_public_key(encoded_post)
     {signature, rest} = decode_signature(rest)
-    {links, rest} = decode_links(rest)
+    {links, rest} = decode_hashes(rest)
     {post_type, rest} = decode_post_type(rest)
     {timestamp, rest} = decode_timestamp(rest)
     header = Cable.Post.new(public_key, signature, links, post_type, timestamp)
@@ -70,6 +75,7 @@ defmodule Cable.Decoder do
 
     case header.post_type do
       0 -> decode_text_post(header, body)
+      1 -> decode_delete_post(header, body)
     end
   end
 end
