@@ -12,6 +12,7 @@ defimpl Cable.Encoder, for: Post do
   @text_post 0
   @delete_post 1
   @info_post 2
+  @topic_post 3
 
   defp encode_links(%Post{} = post) do
     Varint.LEB128.encode(length(post.links)) <> Enum.join(post.links)
@@ -26,10 +27,6 @@ defimpl Cable.Encoder, for: Post do
       encode_links(post) <> encode_post_type(post) <> encode_timestamp(post)
   end
 
-  defp encode_channel(%Post{post_type: @text_post} = post), do: encode_value(post.channel)
-
-  defp encode_text(%Post{post_type: @text_post} = post), do: encode_value(post.text)
-
   defp encode_hashes(%Post{post_type: @delete_post} = post) do
     Varint.LEB128.encode(length(post.hashes)) <> Enum.join(post.hashes)
   end
@@ -42,8 +39,12 @@ defimpl Cable.Encoder, for: Post do
     Enum.reduce(post.info, <<>>, fn x, acc -> acc <> encode_key_value(x) end) <> <<0>>
   end
 
+  defp encode_topic(%Post{post_type: @topic_post} = post) do
+    encode_value(post.channel) <> encode_value(post.topic)
+  end
+
   defp encode_text_post(%Post{post_type: @text_post} = post) do
-    encode_header(post) <> encode_channel(post) <> encode_text(post)
+    encode_header(post) <> encode_value(post.channel) <> encode_value(post.text)
   end
 
   defp encode_delete_post(%Post{post_type: @delete_post} = post) do
@@ -52,6 +53,10 @@ defimpl Cable.Encoder, for: Post do
 
   defp encode_info_post(%Post{post_type: @info_post} = post) do
     encode_header(post) <> encode_info(post)
+  end
+
+  defp encode_topic_post(%Post{post_type: @topic_post} = post) do
+    encode_header(post) <> encode_topic(post)
   end
 
   defp encode_and_sign(%Post{} = post, secret_key) do
@@ -72,6 +77,7 @@ defimpl Cable.Encoder, for: Post do
       0 -> encode_text_post(post)
       1 -> encode_delete_post(post)
       2 -> encode_info_post(post)
+      3 -> encode_topic_post(post)
     end
   end
 end

@@ -2,6 +2,7 @@ defmodule Cable.Post do
   @text_post 0
   @delete_post 1
   @info_post 2
+  @topic_post 3
 
   defstruct public_key: nil,
             signature: nil,
@@ -75,6 +76,19 @@ defmodule Cable.Post do
       timestamp: timestamp,
       info: info,
       post_type: @info_post
+    }
+  end
+
+  def new_topic_post(), do: %Post{post_type: @topic_post}
+
+  def new_topic_post(public_key, links, timestamp, channel, topic) do
+    %Post{
+      public_key: public_key,
+      links: links,
+      timestamp: timestamp,
+      channel: channel,
+      topic: topic,
+      post_type: @topic_post
     }
   end
 
