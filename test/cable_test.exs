@@ -130,16 +130,16 @@ defmodule CableTest do
   test "encodes and signs a join post", state do
     assert Cable.encode(state[:join_post], state[:secret_key]) == state[:join_post_encoded]
   end
-  
+
   test "decodes a join post", state do
     signed_post = %{state[:join_post] | signature: state[:join_post_signature]}
     assert Cable.decode(state[:join_post_encoded]) == signed_post
   end
-  
+
   test "encodes and signs a leave post", state do
     assert Cable.encode(state[:leave_post], state[:secret_key]) == state[:leave_post_encoded]
   end
-  
+
   test "decodes a leave post", state do
     signed_post = %{state[:leave_post] | signature: state[:leave_post_signature]}
     assert Cable.decode(state[:leave_post_encoded]) == signed_post
