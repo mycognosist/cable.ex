@@ -1,12 +1,10 @@
 defmodule Cable.Post do
-  @moduledoc """
-  Create a text post (with or without supplied fields):
-
-  `text_post = Cable.Post.new_text_post()`
-  `text_post = Cable.Post.new_text_post(public_key, links, timestamp, channel, text)`
-  """
-
-  @text_post_type 0
+  @text_post 0
+  @delete_post 1
+  @info_post 2
+  @topic_post 3
+  @join_post 4
+  @leave_post 5
 
   defstruct public_key: nil,
             signature: nil,
@@ -28,7 +26,7 @@ defmodule Cable.Post do
           channel: String.t(),
           text: String.t(),
           hashes: [[binary()]],
-          info: map(),
+          info: [[tuple()]],
           topic: String.t()
         }
 
@@ -46,7 +44,7 @@ defmodule Cable.Post do
     }
   end
 
-  def new_text_post(), do: %Post{post_type: @text_post_type}
+  def new_text_post(), do: %Post{post_type: @text_post}
 
   def new_text_post(public_key, links, timestamp, channel, text) do
     %Post{
@@ -55,7 +53,68 @@ defmodule Cable.Post do
       timestamp: timestamp,
       channel: channel,
       text: text,
-      post_type: @text_post_type
+      post_type: @text_post
+    }
+  end
+
+  def new_delete_post(), do: %Post{post_type: @delete_post}
+
+  def new_delete_post(public_key, links, timestamp, hashes) do
+    %Post{
+      public_key: public_key,
+      links: links,
+      timestamp: timestamp,
+      hashes: hashes,
+      post_type: @delete_post
+    }
+  end
+
+  def new_info_post(), do: %Post{post_type: @info_post}
+
+  def new_info_post(public_key, links, timestamp, info) do
+    %Post{
+      public_key: public_key,
+      links: links,
+      timestamp: timestamp,
+      info: info,
+      post_type: @info_post
+    }
+  end
+
+  def new_topic_post(), do: %Post{post_type: @topic_post}
+
+  def new_topic_post(public_key, links, timestamp, channel, topic) do
+    %Post{
+      public_key: public_key,
+      links: links,
+      timestamp: timestamp,
+      channel: channel,
+      topic: topic,
+      post_type: @topic_post
+    }
+  end
+
+  def new_join_post(), do: %Post{post_type: @join_post}
+
+  def new_join_post(public_key, links, timestamp, channel) do
+    %Post{
+      public_key: public_key,
+      links: links,
+      timestamp: timestamp,
+      channel: channel,
+      post_type: @join_post
+    }
+  end
+
+  def new_leave_post(), do: %Post{post_type: @leave_post}
+
+  def new_leave_post(public_key, links, timestamp, channel) do
+    %Post{
+      public_key: public_key,
+      links: links,
+      timestamp: timestamp,
+      channel: channel,
+      post_type: @leave_post
     }
   end
 
