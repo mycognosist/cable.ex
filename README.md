@@ -4,7 +4,8 @@ Experimental [cable](https://github.com/cabal-club/cable) protocol implementatio
 
 ## Usage
 
-Creating a `Post` type (`post/text`):
+Creating a `Post` of type `post/text` (similar methods exist for all other post
+types):
 
 ```elixir
 iex> Cable.Post.new_text_post(public_key, links, timestamp, channel, text)         
