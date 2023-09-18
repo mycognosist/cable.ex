@@ -9,10 +9,12 @@ end
 alias Cable.Post
 
 defimpl Cable.Encoder, for: Post do
+  # TODO: Move these to a Types module.
   @text_post 0
   @delete_post 1
   @info_post 2
   @topic_post 3
+  @join_post 4
 
   defp encode_links(%Post{} = post) do
     Varint.LEB128.encode(length(post.links)) <> Enum.join(post.links)
@@ -59,6 +61,10 @@ defimpl Cable.Encoder, for: Post do
     encode_header(post) <> encode_topic(post)
   end
 
+  defp encode_join_post(%Post{post_type: @join_post} = post) do
+    encode_header(post) <> encode_value(post.channel)
+  end
+
   defp encode_and_sign(%Post{} = post, secret_key) do
     encoded_post = encode(post)
     Post.sign_post(encoded_post, secret_key)
@@ -78,6 +84,7 @@ defimpl Cable.Encoder, for: Post do
       1 -> encode_delete_post(post)
       2 -> encode_info_post(post)
       3 -> encode_topic_post(post)
+      4 -> encode_join_post(post)
     end
   end
 end

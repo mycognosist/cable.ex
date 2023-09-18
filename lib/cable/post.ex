@@ -3,6 +3,7 @@ defmodule Cable.Post do
   @delete_post 1
   @info_post 2
   @topic_post 3
+  @join_post 4
 
   defstruct public_key: nil,
             signature: nil,
@@ -89,6 +90,18 @@ defmodule Cable.Post do
       channel: channel,
       topic: topic,
       post_type: @topic_post
+    }
+  end
+
+  def new_join_post(), do: %Post{post_type: @join_post}
+
+  def new_join_post(public_key, links, timestamp, channel) do
+    %Post{
+      public_key: public_key,
+      links: links,
+      timestamp: timestamp,
+      channel: channel,
+      post_type: @join_post
     }
   end
 
