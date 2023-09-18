@@ -87,6 +87,11 @@ defmodule Cable.Decoder do
     %{header | channel: channel}
   end
 
+  defp decode_leave_post(header, body) do
+    {channel, _rest} = decode_val(body)
+    %{header | channel: channel}
+  end
+
   defp decode_header(encoded_post) do
     {public_key, rest} = decode_public_key(encoded_post)
     {signature, rest} = decode_signature(rest)
@@ -106,6 +111,7 @@ defmodule Cable.Decoder do
       2 -> decode_info_post(header, body)
       3 -> decode_topic_post(header, body)
       4 -> decode_join_post(header, body)
+      5 -> decode_leave_post(header, body)
     end
   end
 end
