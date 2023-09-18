@@ -8,8 +8,7 @@ defmodule Cable.Decoder do
   end
 
   defp decode_num_hashes(data) do
-    <<hashes_byte::binary-size(1), rest::binary>> = data
-    {num_hashes, _unparsed} = Varint.LEB128.decode(hashes_byte)
+    {num_hashes, rest} = decode_len_from_byte(data)
     {num_hashes, rest}
   end
 
@@ -24,40 +23,64 @@ defmodule Cable.Decoder do
   end
 
   defp decode_post_type(data) do
-    <<post_type_byte::binary-size(1), rest::binary>> = data
-    {post_type, _unparsed} = Varint.LEB128.decode(post_type_byte)
+    {post_type, rest} = decode_len_from_byte(data)
     {post_type, rest}
   end
 
   defp decode_timestamp(data) do
-    <<timestamp_byte::binary-size(1), rest::binary>> = data
-    {timestamp, _unparsed} = Varint.LEB128.decode(timestamp_byte)
+    {timestamp, rest} = decode_len_from_byte(data)
     {timestamp, rest}
   end
 
   defp decode_channel(data) do
-    <<channel_byte::binary-size(1), rest::binary>> = data
-    {channel_len, _unparsed} = Varint.LEB128.decode(channel_byte)
+    {channel_len, rest} = decode_len_from_byte(data)
     <<channel::binary-size(channel_len), rest::binary>> = rest
     {channel, rest}
   end
 
   defp decode_text(data) do
-    <<text_byte::binary-size(1), rest::binary>> = data
-    {text_len, _unparsed} = Varint.LEB128.decode(text_byte)
+    {text_len, rest} = decode_len_from_byte(data)
     <<text::binary-size(text_len), rest::binary>> = rest
     {text, rest}
   end
 
-  defp decode_text_post(signed_post, data) do
-    {channel, rest} = decode_channel(data)
-    {text, _rest} = decode_text(rest)
-    %{signed_post | channel: channel, text: text}
+  defp decode_key_val(key_len, data, state) when key_len > 0 do
+    <<key::binary-size(key_len), rest::binary>> = data
+    {val_len, rest} = decode_len_from_byte(rest)
+    <<val::binary-size(val_len), rest::binary>> = rest
+    {key_len, rest} = decode_len_from_byte(rest)
+    decode_key_val(key_len, rest, [{key, val} | state])
   end
 
-  defp decode_delete_post(signed_post, data) do
-    {hashes, _rest} = decode_hashes(data)
-    %{signed_post | hashes: hashes}
+  defp decode_key_val(0, rest, state) do
+    {state, rest}
+  end
+
+  defp decode_len_from_byte(data) do
+    <<byte::binary-size(1), rest::binary>> = data
+    {len, _unparsed} = Varint.LEB128.decode(byte)
+    {len, rest}
+  end
+
+  defp decode_info(data) do
+    {key_len, rest} = decode_len_from_byte(data)
+    decode_key_val(key_len, rest, [])
+  end
+
+  defp decode_text_post(header, body) do
+    {channel, rest} = decode_channel(body)
+    {text, _rest} = decode_text(rest)
+    %{header | channel: channel, text: text}
+  end
+
+  defp decode_delete_post(header, body) do
+    {hashes, _rest} = decode_hashes(body)
+    %{header | hashes: hashes}
+  end
+
+  defp decode_info_post(header, body) do
+    {info, _rest} = decode_info(body)
+    %{header | info: info}
   end
 
   defp decode_header(encoded_post) do
@@ -76,6 +99,7 @@ defmodule Cable.Decoder do
     case header.post_type do
       0 -> decode_text_post(header, body)
       1 -> decode_delete_post(header, body)
+      2 -> decode_info_post(header, body)
     end
   end
 end
