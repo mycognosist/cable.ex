@@ -101,4 +101,9 @@ defmodule CableTest do
   test "encodes and signs a topic post", state do
     assert Cable.encode(state[:topic_post], state[:secret_key]) == state[:topic_post_encoded]
   end
+
+  test "decodes a topic post", state do
+    signed_post = %{state[:topic_post] | signature: state[:topic_post_signature]}
+    assert Cable.decode(state[:topic_post_encoded]) == signed_post
+  end
 end
