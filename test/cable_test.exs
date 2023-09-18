@@ -65,9 +65,9 @@ defmodule CableTest do
     join_post_encoded = Base.decode16!(@join_post_encoded, case: :lower)
     join_post_signature = Base.decode16!(@join_post_signature, case: :lower)
 
-    #leave_post = Post.new_leave_post(public_key, [post_hash], @timestamp, @channel)
-    #leave_post_encoded = Base.decode16!(@leave_post_encoded, case: :lower)
-    #leave_post_signature = Base.decode16!(@leave_post_signature, case: :lower)
+    leave_post = Post.new_leave_post(public_key, [post_hash], @timestamp, @channel)
+    leave_post_encoded = Base.decode16!(@leave_post_encoded, case: :lower)
+    leave_post_signature = Base.decode16!(@leave_post_signature, case: :lower)
 
     {:ok,
      secret_key: secret_key,
@@ -85,10 +85,10 @@ defmodule CableTest do
      topic_post_signature: topic_post_signature,
      join_post: join_post,
      join_post_encoded: join_post_encoded,
-     join_post_signature: join_post_signature}
-     #leave_post: leave_post,
-     #leave_post_encoded: leave_post_encoded,
-     #leave_post_signature: leave_post_signature}
+     join_post_signature: join_post_signature,
+     leave_post: leave_post,
+     leave_post_encoded: leave_post_encoded,
+     leave_post_signature: leave_post_signature}
   end
 
   test "encodes and signs a text post", state do
@@ -134,5 +134,9 @@ defmodule CableTest do
   test "decodes a join post", state do
     signed_post = %{state[:join_post] | signature: state[:join_post_signature]}
     assert Cable.decode(state[:join_post_encoded]) == signed_post
+  end
+  
+  test "encodes and signs a leave post", state do
+    assert Cable.encode(state[:leave_post], state[:secret_key]) == state[:leave_post_encoded]
   end
 end

@@ -15,6 +15,7 @@ defimpl Cable.Encoder, for: Post do
   @info_post 2
   @topic_post 3
   @join_post 4
+  @leave_post 5
 
   defp encode_links(%Post{} = post) do
     Varint.LEB128.encode(length(post.links)) <> Enum.join(post.links)
@@ -65,6 +66,10 @@ defimpl Cable.Encoder, for: Post do
     encode_header(post) <> encode_value(post.channel)
   end
 
+  defp encode_leave_post(%Post{post_type: @leave_post} = post) do
+    encode_header(post) <> encode_value(post.channel)
+  end
+
   defp encode_and_sign(%Post{} = post, secret_key) do
     encoded_post = encode(post)
     Post.sign_post(encoded_post, secret_key)
@@ -85,6 +90,7 @@ defimpl Cable.Encoder, for: Post do
       2 -> encode_info_post(post)
       3 -> encode_topic_post(post)
       4 -> encode_join_post(post)
+      5 -> encode_leave_post(post)
     end
   end
 end

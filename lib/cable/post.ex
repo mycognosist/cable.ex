@@ -4,6 +4,7 @@ defmodule Cable.Post do
   @info_post 2
   @topic_post 3
   @join_post 4
+  @leave_post 5
 
   defstruct public_key: nil,
             signature: nil,
@@ -102,6 +103,18 @@ defmodule Cable.Post do
       timestamp: timestamp,
       channel: channel,
       post_type: @join_post
+    }
+  end
+
+  def new_leave_post(), do: %Post{post_type: @leave_post}
+
+  def new_leave_post(public_key, links, timestamp, channel) do
+    %Post{
+      public_key: public_key,
+      links: links,
+      timestamp: timestamp,
+      channel: channel,
+      post_type: @leave_post
     }
   end
 
