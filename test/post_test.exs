@@ -1,8 +1,6 @@
-defmodule CableTest do
+defmodule PostTest do
   use ExUnit.Case
   doctest Cable
-
-  # TODO: Move these into a Constants test-helper module.
 
   # Field values sourced from https://github.com/cabal-club/cable.js#examples.
 
