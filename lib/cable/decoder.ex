@@ -26,6 +26,9 @@ alias Cable.Decode
 
 defmodule Cable.Decoder do
   defmodule Post do
+    defp decode_post_type(data), do: Decode.val_from_varint(data)
+    defp decode_timestamp(data), do: Decode.val_from_varint(data)
+
     defp decode_public_key(encoded_post) do
       <<public_key::binary-size(32), rest::binary>> = encoded_post
       {public_key, rest}
@@ -36,9 +39,7 @@ defmodule Cable.Decoder do
       {signature, rest}
     end
 
-    defp decode_post_type(data), do: Decode.val_from_varint(data)
-
-    defp decode_timestamp(data), do: Decode.val_from_varint(data)
+    defp decode_key_val(0, rest, state), do: {state, rest}
 
     defp decode_key_val(key_len, data, state) when key_len > 0 do
       <<key::binary-size(key_len), rest::binary>> = data
@@ -46,8 +47,6 @@ defmodule Cable.Decoder do
       {key_len, rest} = Decode.val_from_varint(rest)
       decode_key_val(key_len, rest, [{key, val} | state])
     end
-
-    defp decode_key_val(0, rest, state), do: {state, rest}
 
     defp decode_info(data) do
       {key_len, rest} = Decode.val_from_varint(data)
@@ -107,10 +106,13 @@ defmodule Cable.Decoder do
 
   defmodule Message do
     defp decode_msg_len(data), do: Decode.val_from_varint(data)
-
     defp decode_msg_type(data), do: Decode.val_from_varint(data)
-
     defp decode_ttl(data), do: Decode.val_from_varint(data)
+    defp decode_channel(encoded_msg), do: Decode.val(encoded_msg)
+    defp decode_time_start_or_end(encoded_msg), do: Decode.val_from_varint(encoded_msg)
+    defp decode_limit(data), do: Decode.val_from_varint(data)
+    defp decode_future(encoded_msg), do: Decode.val_from_varint(encoded_msg)
+    defp decode_offset(encoded_msg), do: Decode.val_from_varint(encoded_msg)
 
     defp decode_circuit_id(encoded_msg) do
       <<circuit_id::binary-size(4), rest::binary>> = encoded_msg
@@ -121,14 +123,6 @@ defmodule Cable.Decoder do
       <<req_id::binary-size(4), rest::binary>> = encoded_msg
       {req_id, rest}
     end
-
-    defp decode_channel(encoded_msg), do: Decode.val(encoded_msg)
-
-    defp decode_time_start_or_end(encoded_msg), do: Decode.val_from_varint(encoded_msg)
-
-    defp decode_limit(data), do: Decode.val_from_varint(data)
-
-    defp decode_future(encoded_msg), do: Decode.val_from_varint(encoded_msg)
 
     defp decode_header(encoded_msg) do
       {_msg_len, rest} = decode_msg_len(encoded_msg)
@@ -164,6 +158,12 @@ defmodule Cable.Decoder do
       %{header | channel: channel, future: future}
     end
 
+    defp decode_channel_list_request(header, body) do
+      {offset, rest} = decode_offset(body)
+      {limit, _rest} = decode_limit(rest)
+      %{header | offset: offset, limit: limit}
+    end
+
     def decode(encoded_msg) do
       {header, body} = decode_header(encoded_msg)
 
@@ -172,6 +172,7 @@ defmodule Cable.Decoder do
         3 -> decode_cancel_request(header, body)
         4 -> decode_channel_time_range_request(header, body)
         5 -> decode_channel_state_request(header, body)
+        6 -> decode_channel_list_request(header, body)
       end
     end
   end
