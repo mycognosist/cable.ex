@@ -133,4 +133,23 @@ defmodule Cable.Message do
       future: future
     }
   end
+
+  def new_channel_list_request(), do: %Message{msg_type: @channel_list_request}
+
+  def new_channel_list_request(
+        circuit_id,
+        req_id,
+        ttl,
+        offset,
+        limit
+      ) do
+    %Message{
+      msg_type: @channel_list_request,
+      circuit_id: circuit_id,
+      req_id: req_id,
+      ttl: ttl,
+      offset: offset,
+      limit: limit
+    }
+  end
 end
