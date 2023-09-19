@@ -180,4 +180,19 @@ defmodule Cable.Message do
       posts: posts
     }
   end
+
+  def new_channel_list_response(), do: %Message{msg_type: @channel_list_response}
+
+  def new_channel_list_response(
+        circuit_id,
+        req_id,
+        channels
+      ) do
+    %Message{
+      msg_type: @channel_list_response,
+      circuit_id: circuit_id,
+      req_id: req_id,
+      channels: channels
+    }
+  end
 end

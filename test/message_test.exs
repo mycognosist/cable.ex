@@ -11,7 +11,9 @@ defmodule MessageTest do
   @hash_2 "97fc63631c41384226b9b68d9f73ffaaf6eac54b71838687f48f112e30d6db68"
   @hash_3 "9c2939fec6d47b00bafe6967aeff697cf4b5abca01b04ba1b31a7e3752454bfa"
   @cancel_id "31b5c9e1"
-  @channel "default"
+  @channel_1 "default"
+  @channel_2 "dev"
+  @channel_3 "introduction"
   @time_start 0
   @time_end 100
   @limit 20
@@ -26,6 +28,7 @@ defmodule MessageTest do
   @channel_list_request_encoded "0c060000000004baaffb010014"
   @hash_response_encoded "6a000000000004baaffb0315ed54965515babf6f16be3f96b04b29ecca813a343311dae483691c07ccf4e597fc63631c41384226b9b68d9f73ffaaf6eac54b71838687f48f112e30d6db689c2939fec6d47b00bafe6967aeff697cf4b5abca01b04ba1b31a7e3752454bfa"
   @post_response_encoded "9701010000000004baaffb8b0125b272a71555322d40efe449a7f99af8fd364b92d350f1664481b2da340a02d0abb083ecdca569f064564942ddf1944fbf550dc27ea36a7074be798d753cb029703de77b1a9532b6ca2ec5706e297dce073d6e508eeb425c32df8431e4677805015049d089a650aa896cb25ec35258653be4df196b4a5e5b6db7ed024aaa89e1b305500764656661756c7400"
+  @channel_list_response_encoded "23070000000004baaffb0764656661756c74036465760c696e74726f64756374696f6e00"
 
   setup_all do
     alias Cable.Message
@@ -48,7 +51,7 @@ defmodule MessageTest do
         @circuit_id,
         req_id,
         @ttl,
-        @channel,
+        @channel_1,
         @time_start,
         @time_end,
         @limit
@@ -58,7 +61,7 @@ defmodule MessageTest do
       Base.decode16!(@channel_time_range_request_encoded, case: :lower)
 
     channel_state_request =
-      Message.new_channel_state_request(@circuit_id, req_id, @ttl, @channel, @future)
+      Message.new_channel_state_request(@circuit_id, req_id, @ttl, @channel_1, @future)
 
     channel_state_request_encoded = Base.decode16!(@channel_state_request_encoded, case: :lower)
 
@@ -72,6 +75,9 @@ defmodule MessageTest do
 
     post_response = Message.new_post_response(@circuit_id, req_id, [encoded_post])
     post_response_encoded = Base.decode16!(@post_response_encoded, case: :lower)
+
+    channel_list_response = Message.new_channel_list_response(@circuit_id, req_id, [@channel_1, @channel_2, @channel_3])
+    channel_list_response_encoded = Base.decode16!(@channel_list_response_encoded, case: :lower)
 
     {:ok,
      post_request: post_request,
@@ -87,7 +93,9 @@ defmodule MessageTest do
      hash_response: hash_response,
      hash_response_encoded: hash_response_encoded,
      post_response: post_response,
-     post_response_encoded: post_response_encoded}
+     post_response_encoded: post_response_encoded,
+     channel_list_response: channel_list_response,
+     channel_list_response_encoded: channel_list_response_encoded}
   end
 
   test "encodes a post request", state do
@@ -156,5 +164,10 @@ defmodule MessageTest do
   test "decodes a post response", state do
     assert Cable.decode_msg(state[:post_response_encoded]) ==
              state[:post_response]
+  end
+  
+  test "encodes a channel list response", state do
+    assert Cable.encode(state[:channel_list_response]) ==
+             state[:channel_list_response_encoded]
   end
 end

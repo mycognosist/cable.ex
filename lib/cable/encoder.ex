@@ -100,6 +100,7 @@ defimpl Cable.Encoder, for: Post do
     @channel_time_range_request 4
     @channel_state_request 5
     @channel_list_request 6
+    @channel_list_response 7
 
     defp encode_msg_type(%Message{} = msg), do: Encode.varint(msg.msg_type)
     defp encode_ttl(%Message{} = msg), do: Encode.varint(msg.ttl)
@@ -124,6 +125,10 @@ defimpl Cable.Encoder, for: Post do
 
     defp encode_posts(%Message{msg_type: @post_response} = msg) do
       Enum.reduce(msg.posts, <<>>, fn x, acc -> acc <> Encode.value(x) end) <> <<0>>
+    end
+
+    defp encode_channels(%Message{msg_type: @channel_list_response} = msg) do
+      Enum.reduce(msg.channels, <<>>, fn x, acc -> acc <> Encode.value(x) end) <> <<0>>
     end
 
     defp encode_hash_response(%Message{msg_type: @hash_response} = msg) do
@@ -169,6 +174,13 @@ defimpl Cable.Encoder, for: Post do
       )
     end
 
+    defp encode_channel_list_response(%Message{msg_type: @channel_list_response} = msg) do
+      Encode.value(
+        encode_header(msg) <>
+          encode_channels(msg)
+      )
+    end
+
     def encode(%Message{} = msg, nil) do
       encode(msg)
     end
@@ -182,6 +194,7 @@ defimpl Cable.Encoder, for: Post do
         4 -> encode_channel_time_range_request(msg)
         5 -> encode_channel_state_request(msg)
         6 -> encode_channel_list_request(msg)
+        7 -> encode_channel_list_response(msg)
       end
     end
   end
