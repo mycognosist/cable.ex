@@ -34,7 +34,7 @@ defmodule Cable.Message do
           time_start: integer(),
           time_end: integer(),
           limit: integer(),
-          future: boolean(),
+          future: integer(),
           offset: integer(),
           posts: [[binary()]],
           channels: [[String.t()]]
@@ -112,6 +112,25 @@ defmodule Cable.Message do
       time_start: time_start,
       time_end: time_end,
       limit: limit
+    }
+  end
+
+  def new_channel_state_request(), do: %Message{msg_type: @channel_state_request}
+
+  def new_channel_state_request(
+        circuit_id,
+        req_id,
+        ttl,
+        channel,
+        future
+      ) do
+    %Message{
+      msg_type: @channel_state_request,
+      circuit_id: circuit_id,
+      req_id: req_id,
+      ttl: ttl,
+      channel: channel,
+      future: future
     }
   end
 end

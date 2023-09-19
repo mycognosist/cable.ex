@@ -96,6 +96,7 @@ defimpl Cable.Encoder, for: Post do
     @post_request 2
     @cancel_request 3
     @channel_time_range_request 4
+    @channel_state_request 5
 
     defp encode_msg_type(%Message{} = msg), do: Encode.varint(msg.msg_type)
     defp encode_ttl(%Message{} = msg), do: Encode.varint(msg.ttl)
@@ -103,6 +104,7 @@ defimpl Cable.Encoder, for: Post do
     defp encode_time_end(%Message{} = msg), do: Encode.varint(msg.time_end)
     defp encode_limit(%Message{} = msg), do: Encode.varint(msg.limit)
     defp encode_channel(%Message{} = msg), do: Encode.value(msg.channel)
+    defp encode_future(%Message{} = msg), do: Encode.varint(msg.future)
 
     defp encode_header(%Message{} = msg) do
       encode_msg_type(msg) <> msg.circuit_id <> msg.req_id
@@ -129,6 +131,15 @@ defimpl Cable.Encoder, for: Post do
       )
     end
 
+    defp encode_channel_state_request(%Message{msg_type: @channel_state_request} = msg) do
+      Encode.value(
+        encode_header(msg) <>
+          encode_ttl(msg) <>
+          encode_channel(msg) <>
+          encode_future(msg)
+      )
+    end
+
     def encode(%Message{} = msg, nil) do
       encode(msg)
     end
@@ -138,6 +149,7 @@ defimpl Cable.Encoder, for: Post do
         2 -> encode_post_request(msg)
         3 -> encode_cancel_request(msg)
         4 -> encode_channel_time_range_request(msg)
+        5 -> encode_channel_state_request(msg)
       end
     end
   end
