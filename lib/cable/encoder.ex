@@ -11,7 +11,6 @@ end
 alias Cable.{Post, Message, Encode}
 
 defimpl Cable.Encoder, for: Post do
-  # TODO: Move these to a Types module.
   @text_post 0
   @delete_post 1
   @info_post 2
@@ -94,6 +93,7 @@ defimpl Cable.Encoder, for: Post do
 
   defimpl Cable.Encoder, for: Message do
     @post_request 2
+    @cancel_request 3
 
     defp encode_msg_type(%Message{} = msg), do: Varint.LEB128.encode(msg.msg_type)
     defp encode_ttl(%Message{} = msg), do: Varint.LEB128.encode(msg.ttl)
@@ -106,8 +106,12 @@ defimpl Cable.Encoder, for: Post do
       Varint.LEB128.encode(length(msg.hashes)) <> Enum.join(msg.hashes)
     end
 
-    defp encode_post_request(%Message{} = msg) do
+    defp encode_post_request(%Message{msg_type: @post_request} = msg) do
       Encode.value(encode_header(msg) <> encode_ttl(msg) <> encode_hashes(msg))
+    end
+
+    defp encode_cancel_request(%Message{msg_type: @cancel_request} = msg) do
+      Encode.value(encode_header(msg) <> encode_ttl(msg) <> msg.cancel_id)
     end
 
     def encode(%Message{} = msg, nil) do
@@ -117,6 +121,7 @@ defimpl Cable.Encoder, for: Post do
     def encode(%Message{} = msg) do
       case msg.msg_type do
         2 -> encode_post_request(msg)
+        3 -> encode_cancel_request(msg)
       end
     end
   end

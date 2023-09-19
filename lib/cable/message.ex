@@ -74,4 +74,21 @@ defmodule Cable.Message do
       hashes: hashes
     }
   end
+
+  def new_cancel_request(), do: %Message{msg_type: @cancel_request}
+
+  def new_cancel_request(
+        circuit_id,
+        req_id,
+        ttl,
+        cancel_id
+      ) do
+    %Message{
+      msg_type: @cancel_request,
+      circuit_id: circuit_id,
+      req_id: req_id,
+      ttl: ttl,
+      cancel_id: cancel_id
+    }
+  end
 end
