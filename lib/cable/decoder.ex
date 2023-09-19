@@ -129,45 +129,63 @@ defmodule Cable.Decoder do
       {msg_type, rest} = decode_msg_type(rest)
       {circuit_id, rest} = decode_circuit_id(rest)
       {req_id, rest} = decode_req_id(rest)
-      {ttl, rest} = decode_ttl(rest)
-      header = Cable.Message.new(msg_type, circuit_id, req_id, ttl)
+      header = Cable.Message.new(msg_type, circuit_id, req_id)
       {header, rest}
     end
 
-    defp decode_post_request(header, body) do
+    defp decode_hash_response(header, body) do
       {hashes, _rest} = Decode.hashes(body)
       %{header | hashes: hashes}
     end
 
+    defp decode_post_request(header, body) do
+      {ttl, rest} = decode_ttl(body)
+      {hashes, _rest} = Decode.hashes(rest)
+      %{header | ttl: ttl, hashes: hashes}
+    end
+
     defp decode_cancel_request(header, body) do
-      {cancel_id, _rest} = decode_req_id(body)
-      %{header | cancel_id: cancel_id}
+      {ttl, rest} = decode_ttl(body)
+      {cancel_id, _rest} = decode_req_id(rest)
+      %{header | ttl: ttl, cancel_id: cancel_id}
     end
 
     defp decode_channel_time_range_request(header, body) do
-      {channel, rest} = decode_channel(body)
+      {ttl, rest} = decode_ttl(body)
+      {channel, rest} = decode_channel(rest)
       {time_start, rest} = decode_time_start_or_end(rest)
       {time_end, rest} = decode_time_start_or_end(rest)
       {limit, _rest} = decode_limit(rest)
-      %{header | channel: channel, time_start: time_start, time_end: time_end, limit: limit}
+
+      %{
+        header
+        | ttl: ttl,
+          channel: channel,
+          time_start: time_start,
+          time_end: time_end,
+          limit: limit
+      }
     end
 
     defp decode_channel_state_request(header, body) do
-      {channel, rest} = decode_channel(body)
+      {ttl, rest} = decode_ttl(body)
+      {channel, rest} = decode_channel(rest)
       {future, _rest} = decode_future(rest)
-      %{header | channel: channel, future: future}
+      %{header | ttl: ttl, channel: channel, future: future}
     end
 
     defp decode_channel_list_request(header, body) do
-      {offset, rest} = decode_offset(body)
+      {ttl, rest} = decode_ttl(body)
+      {offset, rest} = decode_offset(rest)
       {limit, _rest} = decode_limit(rest)
-      %{header | offset: offset, limit: limit}
+      %{header | ttl: ttl, offset: offset, limit: limit}
     end
 
     def decode(encoded_msg) do
       {header, body} = decode_header(encoded_msg)
 
       case header.msg_type do
+        0 -> decode_hash_response(header, body)
         2 -> decode_post_request(header, body)
         3 -> decode_cancel_request(header, body)
         4 -> decode_channel_time_range_request(header, body)

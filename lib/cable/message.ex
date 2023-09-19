@@ -47,14 +47,12 @@ defmodule Cable.Message do
   def new(
         msg_type,
         circuit_id,
-        req_id,
-        ttl
+        req_id
       ) do
     %Message{
       msg_type: msg_type,
       circuit_id: circuit_id,
-      req_id: req_id,
-      ttl: ttl
+      req_id: req_id
     }
   end
 
