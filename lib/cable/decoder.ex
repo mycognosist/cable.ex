@@ -1,9 +1,9 @@
 defmodule Cable.Decode do
-    def val(data) do
-      {val_len, rest} = val_from_varint(data)
-      <<val::binary-size(val_len), rest::binary>> = rest
-      {val, rest}
-    end
+  def val(data) do
+    {val_len, rest} = val_from_varint(data)
+    <<val::binary-size(val_len), rest::binary>> = rest
+    {val, rest}
+  end
 
   def val_from_varint(data) do
     <<byte::binary-size(1), rest::binary>> = data
@@ -19,10 +19,7 @@ defmodule Cable.Decode do
     {hashes, rest}
   end
 
-  def num_hashes(data) do
-    {num_hashes, rest} = val_from_varint(data)
-    {num_hashes, rest}
-  end
+  def num_hashes(data), do: val_from_varint(data)
 end
 
 alias Cable.Decode
@@ -39,15 +36,9 @@ defmodule Cable.Decoder do
       {signature, rest}
     end
 
-    defp decode_post_type(data) do
-      {post_type, rest} = Decode.val_from_varint(data)
-      {post_type, rest}
-    end
+    defp decode_post_type(data), do: Decode.val_from_varint(data)
 
-    defp decode_timestamp(data) do
-      {timestamp, rest} = Decode.val_from_varint(data)
-      {timestamp, rest}
-    end
+    defp decode_timestamp(data), do: Decode.val_from_varint(data)
 
     defp decode_key_val(key_len, data, state) when key_len > 0 do
       <<key::binary-size(key_len), rest::binary>> = data
@@ -56,9 +47,7 @@ defmodule Cable.Decoder do
       decode_key_val(key_len, rest, [{key, val} | state])
     end
 
-    defp decode_key_val(0, rest, state) do
-      {state, rest}
-    end
+    defp decode_key_val(0, rest, state), do: {state, rest}
 
     defp decode_info(data) do
       {key_len, rest} = Decode.val_from_varint(data)
@@ -117,20 +106,11 @@ defmodule Cable.Decoder do
   end
 
   defmodule Message do
-    defp decode_msg_len(data) do
-      {msg_len, rest} = Decode.val_from_varint(data)
-      {msg_len, rest}
-    end
+    defp decode_msg_len(data), do: Decode.val_from_varint(data)
 
-    defp decode_msg_type(data) do
-      {msg_type, rest} = Decode.val_from_varint(data)
-      {msg_type, rest}
-    end
+    defp decode_msg_type(data), do: Decode.val_from_varint(data)
 
-    defp decode_ttl(data) do
-      {ttl, rest} = Decode.val_from_varint(data)
-      {ttl, rest}
-    end
+    defp decode_ttl(data), do: Decode.val_from_varint(data)
 
     defp decode_circuit_id(encoded_msg) do
       <<circuit_id::binary-size(4), rest::binary>> = encoded_msg
@@ -142,26 +122,13 @@ defmodule Cable.Decoder do
       {req_id, rest}
     end
 
-    defp decode_channel(encoded_msg) do
-      {channel, rest} = Decode.val(encoded_msg)
-    end
+    defp decode_channel(encoded_msg), do: Decode.val(encoded_msg)
 
-    defp decode_time_start_or_end(encoded_msg) do
-      # TODO: Remove unnecessary explicit return.
-      # Decode.val_from_varint(encoded_msg)
-      {time, rest} = Decode.val_from_varint(encoded_msg)
-      {time, rest}
-    end
+    defp decode_time_start_or_end(encoded_msg), do: Decode.val_from_varint(encoded_msg)
 
-    defp decode_limit(data) do
-      {limit, rest} = Decode.val_from_varint(data)
-      {limit, rest}
-    end
+    defp decode_limit(data), do: Decode.val_from_varint(data)
 
-    defp decode_future(encoded_msg) do
-      {future, rest} = Decode.val_from_varint(encoded_msg)
-      {future, rest}
-    end
+    defp decode_future(encoded_msg), do: Decode.val_from_varint(encoded_msg)
 
     defp decode_header(encoded_msg) do
       {_msg_len, rest} = decode_msg_len(encoded_msg)
