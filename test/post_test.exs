@@ -95,7 +95,7 @@ defmodule PostTest do
 
   test "decodes a text post", state do
     signed_post = %{state[:text_post] | signature: state[:text_post_signature]}
-    assert Cable.decode(state[:text_post_encoded]) == signed_post
+    assert Cable.decode_post(state[:text_post_encoded]) == signed_post
   end
 
   test "encodes and signs a delete post", state do
@@ -104,7 +104,7 @@ defmodule PostTest do
 
   test "decodes a delete post", state do
     signed_post = %{state[:delete_post] | signature: state[:delete_post_signature]}
-    assert Cable.decode(state[:delete_post_encoded]) == signed_post
+    assert Cable.decode_post(state[:delete_post_encoded]) == signed_post
   end
 
   test "encodes and signs an info post", state do
@@ -113,7 +113,7 @@ defmodule PostTest do
 
   test "decodes an info post", state do
     signed_post = %{state[:info_post] | signature: state[:info_post_signature]}
-    assert Cable.decode(state[:info_post_encoded]) == signed_post
+    assert Cable.decode_post(state[:info_post_encoded]) == signed_post
   end
 
   test "encodes and signs a topic post", state do
@@ -122,7 +122,7 @@ defmodule PostTest do
 
   test "decodes a topic post", state do
     signed_post = %{state[:topic_post] | signature: state[:topic_post_signature]}
-    assert Cable.decode(state[:topic_post_encoded]) == signed_post
+    assert Cable.decode_post(state[:topic_post_encoded]) == signed_post
   end
 
   test "encodes and signs a join post", state do
@@ -131,7 +131,7 @@ defmodule PostTest do
 
   test "decodes a join post", state do
     signed_post = %{state[:join_post] | signature: state[:join_post_signature]}
-    assert Cable.decode(state[:join_post_encoded]) == signed_post
+    assert Cable.decode_post(state[:join_post_encoded]) == signed_post
   end
 
   test "encodes and signs a leave post", state do
@@ -140,6 +140,6 @@ defmodule PostTest do
 
   test "decodes a leave post", state do
     signed_post = %{state[:leave_post] | signature: state[:leave_post_signature]}
-    assert Cable.decode(state[:leave_post_encoded]) == signed_post
+    assert Cable.decode_post(state[:leave_post_encoded]) == signed_post
   end
 end

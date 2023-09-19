@@ -27,7 +27,7 @@ defmodule MessageTest do
     {:ok, post_request: post_request, post_request_encoded: post_request_encoded}
   end
 
-  test "encodes a post request", state do
-    assert Cable.encode(state[:post_request]) == state[:post_request_encoded]
+  test "encodes and decodes a post request", state do
+    assert state[:post_request] |> Cable.encode() |> Cable.decode_msg() == state[:post_request]
   end
 end

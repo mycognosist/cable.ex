@@ -48,33 +48,13 @@ defmodule Cable.Message do
         msg_type,
         circuit_id,
         req_id,
-        ttl,
-        hashes,
-        cancel_id,
-        channel,
-        time_start,
-        time_end,
-        limit,
-        future,
-        offset,
-        posts,
-        channels
+        ttl
       ) do
     %Message{
       msg_type: msg_type,
       circuit_id: circuit_id,
       req_id: req_id,
-      ttl: ttl,
-      hashes: hashes,
-      cancel_id: cancel_id,
-      channel: channel,
-      time_start: time_start,
-      time_end: time_end,
-      limit: limit,
-      future: future,
-      offset: offset,
-      posts: posts,
-      channels: channels
+      ttl: ttl
     }
   end
 
