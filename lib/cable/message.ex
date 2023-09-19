@@ -91,4 +91,27 @@ defmodule Cable.Message do
       cancel_id: cancel_id
     }
   end
+
+  def new_channel_time_range_request(), do: %Message{msg_type: @channel_time_range_request}
+
+  def new_channel_time_range_request(
+        circuit_id,
+        req_id,
+        ttl,
+        channel,
+        time_start,
+        time_end,
+        limit
+      ) do
+    %Message{
+      msg_type: @channel_time_range_request,
+      circuit_id: circuit_id,
+      req_id: req_id,
+      ttl: ttl,
+      channel: channel,
+      time_start: time_start,
+      time_end: time_end,
+      limit: limit
+    }
+  end
 end
