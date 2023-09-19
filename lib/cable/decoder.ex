@@ -1,4 +1,10 @@
 defmodule Cable.Decode do
+    def val(data) do
+      {val_len, rest} = val_from_varint(data)
+      <<val::binary-size(val_len), rest::binary>> = rest
+      {val, rest}
+    end
+
   def val_from_varint(data) do
     <<byte::binary-size(1), rest::binary>> = data
     {val, _unparsed} = Varint.LEB128.decode(byte)
@@ -43,15 +49,9 @@ defmodule Cable.Decoder do
       {timestamp, rest}
     end
 
-    defp decode_val(data) do
-      {val_len, rest} = Decode.val_from_varint(data)
-      <<val::binary-size(val_len), rest::binary>> = rest
-      {val, rest}
-    end
-
     defp decode_key_val(key_len, data, state) when key_len > 0 do
       <<key::binary-size(key_len), rest::binary>> = data
-      {val, rest} = decode_val(rest)
+      {val, rest} = Decode.val(rest)
       {key_len, rest} = Decode.val_from_varint(rest)
       decode_key_val(key_len, rest, [{key, val} | state])
     end
@@ -66,8 +66,8 @@ defmodule Cable.Decoder do
     end
 
     defp decode_text_post(header, body) do
-      {channel, rest} = decode_val(body)
-      {text, _rest} = decode_val(rest)
+      {channel, rest} = Decode.val(body)
+      {text, _rest} = Decode.val(rest)
       %{header | channel: channel, text: text}
     end
 
@@ -82,13 +82,13 @@ defmodule Cable.Decoder do
     end
 
     defp decode_topic_post(header, body) do
-      {channel, rest} = decode_val(body)
-      {topic, _rest} = decode_val(rest)
+      {channel, rest} = Decode.val(body)
+      {topic, _rest} = Decode.val(rest)
       %{header | channel: channel, topic: topic}
     end
 
     defp decode_join_or_leave_post(header, body) do
-      {channel, _rest} = decode_val(body)
+      {channel, _rest} = Decode.val(body)
       %{header | channel: channel}
     end
 
@@ -142,6 +142,27 @@ defmodule Cable.Decoder do
       {req_id, rest}
     end
 
+    defp decode_channel(encoded_msg) do
+      {channel, rest} = Decode.val(encoded_msg)
+    end
+
+    defp decode_time_start_or_end(encoded_msg) do
+      # TODO: Remove unnecessary explicit return.
+      # Decode.val_from_varint(encoded_msg)
+      {time, rest} = Decode.val_from_varint(encoded_msg)
+      {time, rest}
+    end
+
+    defp decode_limit(data) do
+      {limit, rest} = Decode.val_from_varint(data)
+      {limit, rest}
+    end
+
+    defp decode_future(encoded_msg) do
+      {future, rest} = Decode.val_from_varint(encoded_msg)
+      {future, rest}
+    end
+
     defp decode_header(encoded_msg) do
       {_msg_len, rest} = decode_msg_len(encoded_msg)
       {msg_type, rest} = decode_msg_type(rest)
@@ -162,12 +183,21 @@ defmodule Cable.Decoder do
       %{header | cancel_id: cancel_id}
     end
 
+    defp decode_channel_time_range_request(header, body) do
+      {channel, rest} = decode_channel(body)
+      {time_start, rest} = decode_time_start_or_end(rest)
+      {time_end, rest} = decode_time_start_or_end(rest)
+      {limit, _rest} = decode_limit(rest)
+      %{header | channel: channel, time_start: time_start, time_end: time_end, limit: limit}
+    end
+
     def decode(encoded_msg) do
       {header, body} = decode_header(encoded_msg)
 
       case header.msg_type do
         2 -> decode_post_request(header, body)
         3 -> decode_cancel_request(header, body)
+        4 -> decode_channel_time_range_request(header, body)
       end
     end
   end
