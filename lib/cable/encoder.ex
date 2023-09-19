@@ -93,6 +93,7 @@ defimpl Cable.Encoder, for: Post do
   end
 
   defimpl Cable.Encoder, for: Message do
+    @hash_response 0
     @post_request 2
     @cancel_request 3
     @channel_time_range_request 4
@@ -112,8 +113,16 @@ defimpl Cable.Encoder, for: Post do
       encode_msg_type(msg) <> msg.circuit_id <> msg.req_id
     end
 
+    defp encode_hashes(%Message{msg_type: @hash_response} = msg) do
+      Encode.varint(length(msg.hashes)) <> Enum.join(msg.hashes)
+    end
+
     defp encode_hashes(%Message{msg_type: @post_request} = msg) do
       Encode.varint(length(msg.hashes)) <> Enum.join(msg.hashes)
+    end
+
+    defp encode_hash_response(%Message{msg_type: @hash_response} = msg) do
+      Encode.value(encode_header(msg) <> encode_hashes(msg))
     end
 
     defp encode_post_request(%Message{msg_type: @post_request} = msg) do
@@ -157,6 +166,7 @@ defimpl Cable.Encoder, for: Post do
 
     def encode(%Message{} = msg) do
       case msg.msg_type do
+        0 -> encode_hash_response(msg)
         2 -> encode_post_request(msg)
         3 -> encode_cancel_request(msg)
         4 -> encode_channel_time_range_request(msg)

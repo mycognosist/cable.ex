@@ -152,4 +152,19 @@ defmodule Cable.Message do
       limit: limit
     }
   end
+
+  def new_hash_response(), do: %Message{msg_type: @hash_response}
+
+  def new_hash_response(
+        circuit_id,
+        req_id,
+        hashes
+      ) do
+    %Message{
+      msg_type: @hash_response,
+      circuit_id: circuit_id,
+      req_id: req_id,
+      hashes: hashes
+    }
+  end
 end
