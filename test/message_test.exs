@@ -152,4 +152,9 @@ defmodule MessageTest do
     assert Cable.encode(state[:post_response]) ==
              state[:post_response_encoded]
   end
+
+  test "decodes a post response", state do
+    assert Cable.decode_msg(state[:post_response_encoded]) ==
+             state[:post_response]
+  end
 end

@@ -5,11 +5,7 @@ defmodule Cable.Decode do
     {val, rest}
   end
 
-  def val_from_varint(data) do
-    <<byte::binary-size(1), rest::binary>> = data
-    {val, _unparsed} = Varint.LEB128.decode(byte)
-    {val, rest}
-  end
+  def val_from_varint(data), do: Varint.LEB128.decode(data)
 
   def hashes(encoded_hashes) do
     {num_hashes, rest} = num_hashes(encoded_hashes)
@@ -124,18 +120,27 @@ defmodule Cable.Decoder do
       {req_id, rest}
     end
 
-    defp decode_header(encoded_msg) do
-      {_msg_len, rest} = decode_msg_len(encoded_msg)
-      {msg_type, rest} = decode_msg_type(rest)
-      {circuit_id, rest} = decode_circuit_id(rest)
-      {req_id, rest} = decode_req_id(rest)
-      header = Cable.Message.new(msg_type, circuit_id, req_id)
-      {header, rest}
+    defp decode_post(0, rest, state), do: {state, rest}
+
+    defp decode_post(post_len, data, state) when post_len > 0 do
+      <<post::binary-size(post_len), rest::binary>> = data
+      {post_len, rest} = Decode.val_from_varint(rest)
+      decode_post(post_len, rest, [post | state])
+    end
+
+    defp decode_posts(data) do
+      {post_len, rest} = Decode.val_from_varint(data)
+      decode_post(post_len, rest, [])
     end
 
     defp decode_hash_response(header, body) do
       {hashes, _rest} = Decode.hashes(body)
       %{header | hashes: hashes}
+    end
+
+    defp decode_post_response(header, body) do
+      {posts, _rest} = decode_posts(body)
+      %{header | posts: posts}
     end
 
     defp decode_post_request(header, body) do
@@ -181,11 +186,21 @@ defmodule Cable.Decoder do
       %{header | ttl: ttl, offset: offset, limit: limit}
     end
 
+    defp decode_header(encoded_msg) do
+      {_msg_len, rest} = decode_msg_len(encoded_msg)
+      {msg_type, rest} = decode_msg_type(rest)
+      {circuit_id, rest} = decode_circuit_id(rest)
+      {req_id, rest} = decode_req_id(rest)
+      header = Cable.Message.new(msg_type, circuit_id, req_id)
+      {header, rest}
+    end
+
     def decode(encoded_msg) do
       {header, body} = decode_header(encoded_msg)
 
       case header.msg_type do
         0 -> decode_hash_response(header, body)
+        1 -> decode_post_response(header, body)
         2 -> decode_post_request(header, body)
         3 -> decode_cancel_request(header, body)
         4 -> decode_channel_time_range_request(header, body)
