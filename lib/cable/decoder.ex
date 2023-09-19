@@ -1,8 +1,8 @@
 defmodule Cable.Decode do
   def val_from_varint(data) do
     <<byte::binary-size(1), rest::binary>> = data
-    {len, _unparsed} = Varint.LEB128.decode(byte)
-    {len, rest}
+    {val, _unparsed} = Varint.LEB128.decode(byte)
+    {val, rest}
   end
 
   def hashes(encoded_hashes) do
