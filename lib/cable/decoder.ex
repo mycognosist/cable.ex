@@ -138,8 +138,8 @@ defmodule Cable.Decoder do
     end
 
     defp decode_req_id(encoded_msg) do
-      <<circuit_id::binary-size(4), rest::binary>> = encoded_msg
-      {circuit_id, rest}
+      <<req_id::binary-size(4), rest::binary>> = encoded_msg
+      {req_id, rest}
     end
 
     defp decode_header(encoded_msg) do
@@ -157,11 +157,17 @@ defmodule Cable.Decoder do
       %{header | hashes: hashes}
     end
 
+    defp decode_cancel_request(header, body) do
+      {cancel_id, _rest} = decode_req_id(body)
+      %{header | cancel_id: cancel_id}
+    end
+
     def decode(encoded_msg) do
       {header, body} = decode_header(encoded_msg)
 
       case header.msg_type do
         2 -> decode_post_request(header, body)
+        3 -> decode_cancel_request(header, body)
       end
     end
   end

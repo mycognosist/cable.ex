@@ -42,7 +42,6 @@ defmodule MessageTest do
   end
 
   test "encodes a cancel request", state do
-    # assert state[:cancel_request] |> Cable.encode() |> Cable.decode_msg() == state[:post_request]
-    assert state[:cancel_request] |> Cable.encode() == state[:cancel_request_encoded]
+    assert state[:cancel_request] |> Cable.encode() |> Cable.decode_msg() == state[:cancel_request]
   end
 end
