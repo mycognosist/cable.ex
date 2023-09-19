@@ -170,4 +170,9 @@ defmodule MessageTest do
     assert Cable.encode(state[:channel_list_response]) ==
              state[:channel_list_response_encoded]
   end
-end
+
+  test "decodes a channel list response", state do
+    assert Cable.decode_msg(state[:channel_list_response_encoded]) ==
+             state[:channel_list_response]
+  end
+ end

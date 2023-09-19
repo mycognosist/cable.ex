@@ -41,7 +41,7 @@ defmodule Cable.Decoder do
       <<key::binary-size(key_len), rest::binary>> = data
       {val, rest} = Decode.val(rest)
       {key_len, rest} = Decode.val_from_varint(rest)
-      decode_key_val(key_len, rest, [{key, val} | state])
+      decode_key_val(key_len, rest, state ++ [{key, val}])
     end
 
     defp decode_info(data) do
@@ -125,12 +125,25 @@ defmodule Cable.Decoder do
     defp decode_post(post_len, data, state) when post_len > 0 do
       <<post::binary-size(post_len), rest::binary>> = data
       {post_len, rest} = Decode.val_from_varint(rest)
-      decode_post(post_len, rest, [post | state])
+      decode_post(post_len, rest, state ++ [post])
     end
 
     defp decode_posts(data) do
       {post_len, rest} = Decode.val_from_varint(data)
       decode_post(post_len, rest, [])
+    end
+
+    defp decode_channel(0, rest, state), do: {state, rest}
+
+    defp decode_channel(channel_len, data, state) when channel_len > 0 do
+      <<channel::binary-size(channel_len), rest::binary>> = data
+      {channel_len, rest} = Decode.val_from_varint(rest)
+      decode_channel(channel_len, rest, state ++ [channel])
+    end
+
+    defp decode_channels(data) do
+      {channel_len, rest} = Decode.val_from_varint(data)
+      decode_channel(channel_len, rest, [])
     end
 
     defp decode_hash_response(header, body) do
@@ -186,6 +199,11 @@ defmodule Cable.Decoder do
       %{header | ttl: ttl, offset: offset, limit: limit}
     end
 
+    defp decode_channel_list_response(header, body) do
+      {channels, _rest} = decode_channels(body)
+      %{header | channels: channels}
+    end
+
     defp decode_header(encoded_msg) do
       {_msg_len, rest} = decode_msg_len(encoded_msg)
       {msg_type, rest} = decode_msg_type(rest)
@@ -206,6 +224,7 @@ defmodule Cable.Decoder do
         4 -> decode_channel_time_range_request(header, body)
         5 -> decode_channel_state_request(header, body)
         6 -> decode_channel_list_request(header, body)
+        7 -> decode_channel_list_response(header, body)
       end
     end
   end
