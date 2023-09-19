@@ -158,6 +158,12 @@ defmodule Cable.Decoder do
       %{header | channel: channel, time_start: time_start, time_end: time_end, limit: limit}
     end
 
+    defp decode_channel_state_request(header, body) do
+      {channel, rest} = decode_channel(body)
+      {future, _rest} = decode_future(rest)
+      %{header | channel: channel, future: future}
+    end
+
     def decode(encoded_msg) do
       {header, body} = decode_header(encoded_msg)
 
@@ -165,6 +171,7 @@ defmodule Cable.Decoder do
         2 -> decode_post_request(header, body)
         3 -> decode_cancel_request(header, body)
         4 -> decode_channel_time_range_request(header, body)
+        5 -> decode_channel_state_request(header, body)
       end
     end
   end

@@ -99,4 +99,10 @@ defmodule MessageTest do
     assert Cable.encode(state[:channel_state_request]) ==
              state[:channel_state_request_encoded]
   end
+
+  test "decodes a channel state request", state do
+    assert Cable.decode_msg(state[:channel_state_request_encoded]) ==
+             state[:channel_state_request]
+  end
+
 end
