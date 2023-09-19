@@ -165,4 +165,19 @@ defmodule Cable.Message do
       hashes: hashes
     }
   end
+
+  def new_post_response(), do: %Message{msg_type: @post_response}
+
+  def new_post_response(
+        circuit_id,
+        req_id,
+        posts
+      ) do
+    %Message{
+      msg_type: @post_response,
+      circuit_id: circuit_id,
+      req_id: req_id,
+      posts: posts
+    }
+  end
 end
