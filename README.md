@@ -67,7 +67,7 @@ iex> Cable.Post.valid_signature?(encoded_post)
 true
 ```
 
-Checking that a post includes a signature:
+Checking that a `Post` includes a signature:
 
 ```elixir
 iex> Cable.Post.is_signed?(post)
