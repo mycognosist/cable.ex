@@ -1,5 +1,6 @@
 defmodule Cable.Encode do
-  def value(value), do: Varint.LEB128.encode(byte_size(value)) <> value
+  def varint(value), do: Varint.LEB128.encode(value)
+  def value(value), do: varint(byte_size(value)) <> value
   def key_value({key, value}), do: value(key) <> value(value)
 end
 
@@ -11,7 +12,6 @@ end
 alias Cable.{Post, Message, Encode}
 
 defimpl Cable.Encoder, for: Post do
-  # TODO: Move these to a Types module.
   @text_post 0
   @delete_post 1
   @info_post 2
@@ -20,11 +20,11 @@ defimpl Cable.Encoder, for: Post do
   @leave_post 5
 
   defp encode_links(%Post{} = post) do
-    Varint.LEB128.encode(length(post.links)) <> Enum.join(post.links)
+    Encode.varint(length(post.links)) <> Enum.join(post.links)
   end
 
-  defp encode_timestamp(%Post{} = post), do: Varint.LEB128.encode(post.timestamp)
-  defp encode_post_type(%Post{} = post), do: Varint.LEB128.encode(post.post_type)
+  defp encode_timestamp(%Post{} = post), do: Encode.varint(post.timestamp)
+  defp encode_post_type(%Post{} = post), do: Encode.varint(post.post_type)
 
   defp encode_header(%Post{} = post) do
     post.public_key <>
@@ -33,7 +33,7 @@ defimpl Cable.Encoder, for: Post do
   end
 
   defp encode_hashes(%Post{post_type: @delete_post} = post) do
-    Varint.LEB128.encode(length(post.hashes)) <> Enum.join(post.hashes)
+    Encode.varint(length(post.hashes)) <> Enum.join(post.hashes)
   end
 
   defp encode_info(%Post{post_type: @info_post} = post) do
@@ -93,21 +93,92 @@ defimpl Cable.Encoder, for: Post do
   end
 
   defimpl Cable.Encoder, for: Message do
+    @hash_response 0
+    @post_response 1
     @post_request 2
+    @cancel_request 3
+    @channel_time_range_request 4
+    @channel_state_request 5
+    @channel_list_request 6
+    @channel_list_response 7
 
-    defp encode_msg_type(%Message{} = msg), do: Varint.LEB128.encode(msg.msg_type)
-    defp encode_ttl(%Message{} = msg), do: Varint.LEB128.encode(msg.ttl)
+    defp encode_msg_type(%Message{} = msg), do: Encode.varint(msg.msg_type)
+    defp encode_ttl(%Message{} = msg), do: Encode.varint(msg.ttl)
+    defp encode_time_start(%Message{} = msg), do: Encode.varint(msg.time_start)
+    defp encode_time_end(%Message{} = msg), do: Encode.varint(msg.time_end)
+    defp encode_limit(%Message{} = msg), do: Encode.varint(msg.limit)
+    defp encode_channel(%Message{} = msg), do: Encode.value(msg.channel)
+    defp encode_future(%Message{} = msg), do: Encode.varint(msg.future)
+    defp encode_offset(%Message{} = msg), do: Encode.varint(msg.offset)
 
     defp encode_header(%Message{} = msg) do
       encode_msg_type(msg) <> msg.circuit_id <> msg.req_id
     end
 
-    defp encode_hashes(%Message{msg_type: @post_request} = msg) do
-      Varint.LEB128.encode(length(msg.hashes)) <> Enum.join(msg.hashes)
+    defp encode_hashes(%Message{msg_type: @hash_response} = msg) do
+      Encode.varint(length(msg.hashes)) <> Enum.join(msg.hashes)
     end
 
-    defp encode_post_request(%Message{} = msg) do
+    defp encode_hashes(%Message{msg_type: @post_request} = msg) do
+      Encode.varint(length(msg.hashes)) <> Enum.join(msg.hashes)
+    end
+
+    defp encode_posts(%Message{msg_type: @post_response} = msg) do
+      Enum.reduce(msg.posts, <<>>, fn x, acc -> acc <> Encode.value(x) end) <> <<0>>
+    end
+
+    defp encode_channels(%Message{msg_type: @channel_list_response} = msg) do
+      Enum.reduce(msg.channels, <<>>, fn x, acc -> acc <> Encode.value(x) end) <> <<0>>
+    end
+
+    defp encode_hash_response(%Message{msg_type: @hash_response} = msg) do
+      Encode.value(encode_header(msg) <> encode_hashes(msg))
+    end
+
+    defp encode_post_response(%Message{msg_type: @post_response} = msg) do
+      Encode.value(encode_header(msg) <> encode_posts(msg))
+    end
+
+    defp encode_post_request(%Message{msg_type: @post_request} = msg) do
       Encode.value(encode_header(msg) <> encode_ttl(msg) <> encode_hashes(msg))
+    end
+
+    defp encode_cancel_request(%Message{msg_type: @cancel_request} = msg) do
+      Encode.value(encode_header(msg) <> encode_ttl(msg) <> msg.cancel_id)
+    end
+
+    defp encode_channel_time_range_request(%Message{msg_type: @channel_time_range_request} = msg) do
+      Encode.value(
+        encode_header(msg) <>
+          encode_ttl(msg) <>
+          encode_channel(msg) <>
+          encode_time_start(msg) <> encode_time_end(msg) <> encode_limit(msg)
+      )
+    end
+
+    defp encode_channel_state_request(%Message{msg_type: @channel_state_request} = msg) do
+      Encode.value(
+        encode_header(msg) <>
+          encode_ttl(msg) <>
+          encode_channel(msg) <>
+          encode_future(msg)
+      )
+    end
+
+    defp encode_channel_list_request(%Message{msg_type: @channel_list_request} = msg) do
+      Encode.value(
+        encode_header(msg) <>
+          encode_ttl(msg) <>
+          encode_offset(msg) <>
+          encode_limit(msg)
+      )
+    end
+
+    defp encode_channel_list_response(%Message{msg_type: @channel_list_response} = msg) do
+      Encode.value(
+        encode_header(msg) <>
+          encode_channels(msg)
+      )
     end
 
     def encode(%Message{} = msg, nil) do
@@ -116,7 +187,14 @@ defimpl Cable.Encoder, for: Post do
 
     def encode(%Message{} = msg) do
       case msg.msg_type do
+        0 -> encode_hash_response(msg)
+        1 -> encode_post_response(msg)
         2 -> encode_post_request(msg)
+        3 -> encode_cancel_request(msg)
+        4 -> encode_channel_time_range_request(msg)
+        5 -> encode_channel_state_request(msg)
+        6 -> encode_channel_list_request(msg)
+        7 -> encode_channel_list_response(msg)
       end
     end
   end

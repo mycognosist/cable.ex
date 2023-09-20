@@ -34,7 +34,7 @@ defmodule Cable.Message do
           time_start: integer(),
           time_end: integer(),
           limit: integer(),
-          future: boolean(),
+          future: integer(),
           offset: integer(),
           posts: [[binary()]],
           channels: [[String.t()]]
@@ -47,14 +47,12 @@ defmodule Cable.Message do
   def new(
         msg_type,
         circuit_id,
-        req_id,
-        ttl
+        req_id
       ) do
     %Message{
       msg_type: msg_type,
       circuit_id: circuit_id,
-      req_id: req_id,
-      ttl: ttl
+      req_id: req_id
     }
   end
 
@@ -72,6 +70,129 @@ defmodule Cable.Message do
       req_id: req_id,
       ttl: ttl,
       hashes: hashes
+    }
+  end
+
+  def new_cancel_request(), do: %Message{msg_type: @cancel_request}
+
+  def new_cancel_request(
+        circuit_id,
+        req_id,
+        ttl,
+        cancel_id
+      ) do
+    %Message{
+      msg_type: @cancel_request,
+      circuit_id: circuit_id,
+      req_id: req_id,
+      ttl: ttl,
+      cancel_id: cancel_id
+    }
+  end
+
+  def new_channel_time_range_request(), do: %Message{msg_type: @channel_time_range_request}
+
+  def new_channel_time_range_request(
+        circuit_id,
+        req_id,
+        ttl,
+        channel,
+        time_start,
+        time_end,
+        limit
+      ) do
+    %Message{
+      msg_type: @channel_time_range_request,
+      circuit_id: circuit_id,
+      req_id: req_id,
+      ttl: ttl,
+      channel: channel,
+      time_start: time_start,
+      time_end: time_end,
+      limit: limit
+    }
+  end
+
+  def new_channel_state_request(), do: %Message{msg_type: @channel_state_request}
+
+  def new_channel_state_request(
+        circuit_id,
+        req_id,
+        ttl,
+        channel,
+        future
+      ) do
+    %Message{
+      msg_type: @channel_state_request,
+      circuit_id: circuit_id,
+      req_id: req_id,
+      ttl: ttl,
+      channel: channel,
+      future: future
+    }
+  end
+
+  def new_channel_list_request(), do: %Message{msg_type: @channel_list_request}
+
+  def new_channel_list_request(
+        circuit_id,
+        req_id,
+        ttl,
+        offset,
+        limit
+      ) do
+    %Message{
+      msg_type: @channel_list_request,
+      circuit_id: circuit_id,
+      req_id: req_id,
+      ttl: ttl,
+      offset: offset,
+      limit: limit
+    }
+  end
+
+  def new_hash_response(), do: %Message{msg_type: @hash_response}
+
+  def new_hash_response(
+        circuit_id,
+        req_id,
+        hashes
+      ) do
+    %Message{
+      msg_type: @hash_response,
+      circuit_id: circuit_id,
+      req_id: req_id,
+      hashes: hashes
+    }
+  end
+
+  def new_post_response(), do: %Message{msg_type: @post_response}
+
+  def new_post_response(
+        circuit_id,
+        req_id,
+        posts
+      ) do
+    %Message{
+      msg_type: @post_response,
+      circuit_id: circuit_id,
+      req_id: req_id,
+      posts: posts
+    }
+  end
+
+  def new_channel_list_response(), do: %Message{msg_type: @channel_list_response}
+
+  def new_channel_list_response(
+        circuit_id,
+        req_id,
+        channels
+      ) do
+    %Message{
+      msg_type: @channel_list_response,
+      circuit_id: circuit_id,
+      req_id: req_id,
+      channels: channels
     }
   end
 end
