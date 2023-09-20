@@ -44,6 +44,9 @@ defmodule Cable.Message do
 
   def new(), do: %Message{}
 
+  @doc """
+  Construct a new `Message` type with the given header parameters.
+  """
   def new(
         msg_type,
         circuit_id,

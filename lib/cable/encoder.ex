@@ -19,12 +19,17 @@ defimpl Cable.Encoder, for: Post do
   @join_post 4
   @leave_post 5
 
+  defp encode_timestamp(%Post{} = post), do: Encode.varint(post.timestamp)
+  defp encode_post_type(%Post{} = post), do: Encode.varint(post.post_type)
+  defp encode_channel(%Post{post_type: @text_post} = post), do: Encode.value(post.channel)
+  defp encode_channel(%Post{post_type: @topic_post} = post), do: Encode.value(post.channel)
+  defp encode_channel(%Post{post_type: @join_post} = post), do: Encode.value(post.channel)
+  defp encode_channel(%Post{post_type: @leave_post} = post), do: Encode.value(post.channel)
+  defp encode_topic(%Post{post_type: @topic_post} = post), do: Encode.value(post.topic)
+
   defp encode_links(%Post{} = post) do
     Encode.varint(length(post.links)) <> Enum.join(post.links)
   end
-
-  defp encode_timestamp(%Post{} = post), do: Encode.varint(post.timestamp)
-  defp encode_post_type(%Post{} = post), do: Encode.varint(post.post_type)
 
   defp encode_header(%Post{} = post) do
     post.public_key <>
@@ -40,12 +45,8 @@ defimpl Cable.Encoder, for: Post do
     Enum.reduce(post.info, <<>>, fn x, acc -> acc <> Encode.key_value(x) end) <> <<0>>
   end
 
-  defp encode_topic(%Post{post_type: @topic_post} = post) do
-    Encode.value(post.channel) <> Encode.value(post.topic)
-  end
-
   defp encode_text_post(%Post{post_type: @text_post} = post) do
-    encode_header(post) <> Encode.value(post.channel) <> Encode.value(post.text)
+    encode_header(post) <> encode_channel(post) <> Encode.value(post.text)
   end
 
   defp encode_delete_post(%Post{post_type: @delete_post} = post) do
@@ -57,15 +58,15 @@ defimpl Cable.Encoder, for: Post do
   end
 
   defp encode_topic_post(%Post{post_type: @topic_post} = post) do
-    encode_header(post) <> encode_topic(post)
+    encode_header(post) <> encode_channel(post) <> encode_topic(post)
   end
 
   defp encode_join_post(%Post{post_type: @join_post} = post) do
-    encode_header(post) <> Encode.value(post.channel)
+    encode_header(post) <> encode_channel(post)
   end
 
   defp encode_leave_post(%Post{post_type: @leave_post} = post) do
-    encode_header(post) <> Encode.value(post.channel)
+    encode_header(post) <> encode_channel(post)
   end
 
   defp encode_and_sign(%Post{} = post, secret_key) do

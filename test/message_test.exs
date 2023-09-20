@@ -76,7 +76,9 @@ defmodule MessageTest do
     post_response = Message.new_post_response(@circuit_id, req_id, [encoded_post])
     post_response_encoded = Base.decode16!(@post_response_encoded, case: :lower)
 
-    channel_list_response = Message.new_channel_list_response(@circuit_id, req_id, [@channel_1, @channel_2, @channel_3])
+    channel_list_response =
+      Message.new_channel_list_response(@circuit_id, req_id, [@channel_1, @channel_2, @channel_3])
+
     channel_list_response_encoded = Base.decode16!(@channel_list_response_encoded, case: :lower)
 
     {:ok,
@@ -165,7 +167,7 @@ defmodule MessageTest do
     assert Cable.decode_msg(state[:post_response_encoded]) ==
              state[:post_response]
   end
-  
+
   test "encodes a channel list response", state do
     assert Cable.encode(state[:channel_list_response]) ==
              state[:channel_list_response_encoded]
@@ -175,4 +177,4 @@ defmodule MessageTest do
     assert Cable.decode_msg(state[:channel_list_response_encoded]) ==
              state[:channel_list_response]
   end
- end
+end

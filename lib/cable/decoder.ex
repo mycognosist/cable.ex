@@ -1,4 +1,7 @@
 defmodule Cable.Decode do
+  @doc """
+  Decode a varint-prefixed value from the given data bytes.
+  """
   def val(data) do
     {val_len, rest} = val_from_varint(data)
     <<val::binary-size(val_len), rest::binary>> = rest
@@ -7,6 +10,10 @@ defmodule Cable.Decode do
 
   def val_from_varint(data), do: Varint.LEB128.decode(data)
 
+  @doc """
+  Decode hashes from a list of varint-prefixed hashes, where each varint
+  encodes the length of the following hash.
+  """
   def hashes(encoded_hashes) do
     {num_hashes, rest} = num_hashes(encoded_hashes)
     hashes_size = num_hashes * 32
@@ -86,6 +93,9 @@ defmodule Cable.Decoder do
       {header, rest}
     end
 
+    @doc """
+    Decode an encoded post.
+    """
     def decode(encoded_post) do
       {header, body} = decode_header(encoded_post)
 
@@ -213,6 +223,9 @@ defmodule Cable.Decoder do
       {header, rest}
     end
 
+    @doc """
+    Decode an encoded message.
+    """
     def decode(encoded_msg) do
       {header, body} = decode_header(encoded_msg)
 

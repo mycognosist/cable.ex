@@ -30,10 +30,13 @@ defmodule Cable.Post do
           topic: String.t()
         }
 
-  alias Cable.Post
+  alias Cable.{Post, Cryptography}
 
   def new(), do: %Post{}
 
+  @doc """
+  Construct a new `Post` type with the given header parameters.
+  """
   def new(public_key, signature, links, post_type, timestamp) do
     %Post{
       public_key: public_key,
@@ -118,20 +121,56 @@ defmodule Cable.Post do
     }
   end
 
+  @doc """
+  If passed a post as the first paramter, set the value of the signature field
+  to the given signature.
+
+  If passed an encoded post as the first parameter, insert a signature into an
+  encoded post - replacing any previous signature or placeholder bytes.
+  """
   def insert_signature(%Post{} = post, signature) do
     %{post | signature: signature}
   end
 
-  def insert_signature(post, signature) when is_binary(post) do
-    <<public_key::binary-size(32), rest::binary>> = post
+  def insert_signature(encoded_post, signature) when is_binary(encoded_post) do
+    <<public_key::binary-size(32), rest::binary>> = encoded_post
     <<_head::binary-size(64), rest::binary>> = rest
     public_key <> signature <> rest
   end
 
+  @doc """
+  Sign an encoded post and insert the signature.
+  """
   def sign_post(encoded_post, secret_key) do
     <<public_key::binary-size(32), rest::binary>> = encoded_post
     <<_head::binary-size(64), rest::binary>> = rest
-    signature = Cable.Cryptography.sign(rest, secret_key)
+    signature = Cryptography.sign(rest, secret_key)
     public_key <> signature <> rest
+  end
+
+  @doc """
+  Verify that the given encoded post includes a valid signature.
+  """
+  def valid_signature?(encoded_post) do
+    if byte_size(encoded_post) < 96 do
+      false
+    end
+
+    <<public_key::binary-size(32), signature::binary-size(64), rest::binary>> = encoded_post
+    Cryptography.valid_signature?(signature, rest, public_key)
+  end
+
+  @doc """
+  Verify that the given post has been signed.
+  """
+  def is_signed?(post) do
+    is_signature?(post.signature)
+  end
+
+  defp is_signature?(nil), do: false
+
+  defp is_signature?(signature) when is_binary(signature) do
+    signature = :binary.bin_to_list(signature)
+    Enum.any?(signature, fn byte -> byte != 0 end)
   end
 end
