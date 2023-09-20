@@ -60,6 +60,20 @@ iex> Cable.Post.sign(Cable.encode(post), secret_key)
   ...>>
 ```
 
+Verifying the signature of an encoded post:
+
+```elixir
+iex> Cable.Post.valid_signature?(encoded_post)
+true
+```
+
+Checking that a post includes a signature:
+
+```elixir
+iex> Cable.Post.is_signed?(post)
+true
+```
+
 Decoding an encoded `Post` type:
 
 ```elixir
