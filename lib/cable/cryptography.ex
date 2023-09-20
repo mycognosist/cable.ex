@@ -1,5 +1,3 @@
-# https://blog.swwomm.com/2020/09/elixir-ed25519-signatures-with-enacl.html
-
 defmodule Cable.Cryptography do
   @doc """
   Generate an Ed25519 public-private key pair using sha512.

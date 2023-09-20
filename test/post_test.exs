@@ -89,6 +89,17 @@ defmodule PostTest do
      leave_post_signature: leave_post_signature}
   end
 
+  test "verifies the signature of a text post", state do
+    assert Cable.Post.valid_signature?(state[:text_post_encoded])
+  end
+
+  test "verifies that a text post has been signed", state do
+    assert Cable.Post.is_signed?(state[:text_post]) == false
+
+    signed_post = %{state[:text_post] | signature: state[:text_post_signature]}
+    assert Cable.Post.is_signed?(signed_post) == true
+  end
+
   test "encodes and signs a text post", state do
     assert Cable.encode(state[:text_post], state[:secret_key]) == state[:text_post_encoded]
   end
