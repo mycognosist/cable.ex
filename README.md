@@ -4,6 +4,8 @@ Experimental [cable](https://github.com/cabal-club/cable) protocol implementatio
 
 ## Usage
 
+### `Post`
+
 Creating a `Post` of type `post/text` (similar methods exist for all other post
 types):
 
@@ -61,7 +63,7 @@ iex> Cable.Post.sign(Cable.encode(post), secret_key)
 Decoding an encoded `Post` type:
 
 ```elixir
-iex> Cable.decode(encoded_post)
+iex> Cable.decode_post(encoded_post)
 %Cable.Post{
   channel: "myco",
   hashes: nil,
@@ -80,6 +82,60 @@ iex> Cable.decode(encoded_post)
   text: "Spitzenkörper",
   timestamp: 80,
   topic: nil
+}
+```
+
+### `Message`
+
+Creating a `Message` of type `Channel State Request` (similar methods exist for all other
+message types):
+
+```elixir
+iex> Cable.Message.new_channel_state_request(<<0, 0, 0, 0>>, <<4, 186, 175, 251>>, 1, "myco", 0)
+%Cable.Message{
+  cancel_id: nil,
+  channel: "myco",
+  channels: nil,
+  circuit_id: <<0, 0, 0, 0>>,
+  future: 0,
+  hashes: nil,
+  limit: nil,
+  msg_type: 5,
+  offset: nil,
+  posts: nil,
+  req_id: <<4, 186, 175, 251>>,
+  time_end: nil,
+  time_start: nil,
+  ttl: 1
+}
+```
+
+Encoding a `Message` type:
+
+```elixir
+iex> Cable.encode(msg)
+<<16, 5, 0, 0, 0, 0, 4, 186, 175, 251, 1, 4, 109, 121, 99, 111, 0>>
+```
+
+Decoding a `Message` type:
+
+```elixir
+iex> Cable.decode_msg(encoded_msg)
+%Cable.Message{
+  cancel_id: nil,
+  channel: "myco",
+  channels: nil,
+  circuit_id: <<0, 0, 0, 0>>,
+  future: 0,
+  hashes: nil,
+  limit: nil,
+  msg_type: 5,
+  offset: nil,
+  posts: nil,
+  req_id: <<4, 186, 175, 251>>,
+  time_end: nil,
+  time_start: nil,
+  ttl: 1
 }
 ```
 
